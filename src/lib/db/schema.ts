@@ -1,12 +1,5 @@
-import { pgTable, uuid, text, timestamp, jsonb, integer, real, primaryKey, pgSchema, pgEnum } from 'drizzle-orm/pg-core';
-import { relations, sql } from 'drizzle-orm';
-
-// Define the Supabase auth schema to reference the users table
-const authSchema = pgSchema('auth');
-
-export const users = authSchema.table('users', {
-  id: uuid('id').primaryKey(),
-});
+import { pgTable, uuid, text, timestamp, jsonb, integer, real, primaryKey, pgEnum } from 'drizzle-orm/pg-core';
+import { relations } from 'drizzle-orm';
 
 // Enums
 export const dataSourceStatusEnum = pgEnum('data_source_status', ['pending', 'processing', 'processed', 'failed']);
@@ -15,7 +8,7 @@ export const summaryLevelEnum = pgEnum('summary_level', ['sentence', 'paragraph'
 // Projects Table
 export const projects = pgTable('projects', {
   id: uuid('id').defaultRandom().primaryKey(),
-  userId: uuid('user_id').references(() => users.id, { onDelete: 'cascade' }).notNull(),
+  userId: text('user_id').notNull(),
   name: text('name').notNull(),
   description: text('description'),
   createdAt: timestamp('created_at').defaultNow().notNull(),
