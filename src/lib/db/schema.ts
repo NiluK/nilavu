@@ -1,4 +1,4 @@
-import { pgTable, uuid, text, timestamp, jsonb, integer, real, primaryKey, pgEnum } from 'drizzle-orm/pg-core';
+import { pgTable, uuid, text, timestamp, jsonb, integer, real, primaryKey, pgEnum, boolean } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
 
 // Enums
@@ -18,6 +18,7 @@ export const projects = pgTable('projects', {
 export const projectsRelations = relations(projects, ({ many }) => ({
   dataSources: many(dataSources),
   entities: many(entities),
+  synthesisParameters: many(synthesisParameters),
 }));
 
 // Data Sources Table
@@ -111,5 +112,50 @@ export const dataSourceEntitiesRelations = relations(dataSourceEntities, ({ one 
   entity: one(entities, {
     fields: [dataSourceEntities.entityId],
     references: [entities.id],
+  }),
+}));
+
+// Synthesis Parameters Table - for dynamic column management
+export const synthesisParameters = pgTable('synthesis_parameters', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  projectId: uuid('project_id').references(() => projects.id, { onDelete: 'cascade' }).notNull(),
+  name: text('name').notNull(), // e.g., "Publication Year", "Institution", "Technology Maturity"
+  type: text('type').notNull(), // 'text', 'number', 'date', 'category'
+  description: text('description'),
+  isSystem: boolean('is_system').default(false), // Auto-discovered vs user-defined
+  displayOrder: integer('display_order').default(0),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
+export const synthesisParametersRelations = relations(synthesisParameters, ({ one, many }) => ({
+  project: one(projects, {
+    fields: [synthesisParameters.projectId],
+    references: [projects.id],
+  }),
+  values: many(synthesisValues),
+}));
+
+// Synthesis Values Table - the actual spreadsheet data
+export const synthesisValues = pgTable('synthesis_values', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  parameterId: uuid('parameter_id').references(() => synthesisParameters.id, { onDelete: 'cascade' }).notNull(),
+  dataSourceId: uuid('data_source_id').references(() => dataSources.id, { onDelete: 'cascade' }).notNull(),
+  value: text('value'), // JSON for complex types
+  extractedValue: text('extracted_value'), // AI-extracted raw value
+  confidence: real('confidence'), // 0.0 to 1.0
+  context: text('context'), // Source snippet
+  isVerified: boolean('is_verified').default(false), // Human verification
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
+export const synthesisValuesRelations = relations(synthesisValues, ({ one }) => ({
+  parameter: one(synthesisParameters, {
+    fields: [synthesisValues.parameterId],
+    references: [synthesisParameters.id],
+  }),
+  dataSource: one(dataSources, {
+    fields: [synthesisValues.dataSourceId],
+    references: [dataSources.id],
   }),
 }));

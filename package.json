@@ -31,7 +31,8 @@
     "react": "19.2.0",
     "react-dom": "19.2.0",
     "react-dropzone": "^14.3.8",
-    "tailwind-merge": "^3.4.0"
+    "tailwind-merge": "^3.4.0",
+    "unstructured-client": "^0.29.1"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",

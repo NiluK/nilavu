@@ -4,8 +4,9 @@ import { createClient } from "@/lib/supabase/server";
 import { UploadZone } from "@/components/upload-zone";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { UserButton } from "@clerk/nextjs";
-import { ArrowLeft, Folder } from "lucide-react";
+import { ArrowLeft, Folder, Table, Brain } from "lucide-react";
 import Link from "next/link";
+import { Button } from "@/components/ui/button";
 
 interface ProjectPageProps {
   params: Promise<{ projectId: string }>;
@@ -67,6 +68,14 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
             </div>
           </div>
           <div className="flex items-center gap-4">
+            {(dataSources?.length || 0) > 0 && (
+              <Link href={`/dashboard/${projectId}/synthesis`}>
+                <Button variant="outline" className="gap-2">
+                  <Table className="h-4 w-4" />
+                  Synthesis View
+                </Button>
+              </Link>
+            )}
             <ThemeToggle />
             <UserButton />
           </div>
@@ -87,11 +96,21 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
 
         {/* Data Sources Section */}
         <section>
-          <div className="mb-6">
-            <h2 className="text-2xl font-bold">Data Sources</h2>
-            <p className="text-sm text-muted-foreground mt-1">
-              {dataSources?.length || 0} sources in this project
-            </p>
+          <div className="mb-6 flex items-center justify-between">
+            <div>
+              <h2 className="text-2xl font-bold">Data Sources</h2>
+              <p className="text-sm text-muted-foreground mt-1">
+                {dataSources?.length || 0} sources in this project
+              </p>
+            </div>
+            {dataSources && dataSources.filter(s => s.status === 'processed').length > 0 && (
+              <Link href={`/dashboard/${projectId}/synthesis`}>
+                <Button className="gap-2">
+                  <Brain className="h-4 w-4" />
+                  Start Synthesis
+                </Button>
+              </Link>
+            )}
           </div>
 
           {!dataSources || dataSources.length === 0 ? (
